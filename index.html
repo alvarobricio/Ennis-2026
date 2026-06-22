@@ -16,6 +16,7 @@
       --accent-secondary: #38bdf8;
       --text: #f8fafc;
       --text-muted: #94a3b8;
+      --danger: #ef4444;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -48,30 +49,26 @@
 
     .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: var(--bg-sidebar); }
 
-    .schedule-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: var(--bg-card); border-radius: 8px; overflow: hidden; }
-    .schedule-table th, .schedule-table td { padding: 12px 15px; text-align: left; font-size: 14px; }
-    .schedule-table th { background: #0f172a; color: var(--accent-secondary); }
-    .schedule-table tr { border-bottom: 1px solid #334155; }
-    .schedule-table tr.active-row { background: rgba(0, 255, 170, 0.1); border-left: 4px solid var(--accent); }
-
     #map { width: 100%; height: 550px; border-radius: 12px; border: 1px solid #334155; }
 
-    /* ESTILOS PARA LA LISTA DE DOCUMENTOS */
-    .doc-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-    .doc-item { background: #111827; padding: 15px; border-radius: 8px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-    .doc-link { background: var(--accent-secondary); color: #000; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold; }
-    .doc-link:hover { opacity: 0.9; }
+    /* ESTILOS DE LA SECCIÓN DE CONTACTO */
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .contact-item { background: #111827; padding: 15px; border-radius: 8px; border: 1px solid #334155; display: flex; flex-direction: column; gap: 5px; }
+    .contact-phone { font-size: 18px; font-weight: bold; color: var(--accent); margin-top: 5px; }
+    .contact-emergency { border-left: 4px solid var(--danger); }
+    .contact-emergency .contact-phone { color: var(--danger); }
+    .alert-box { background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; color: #fbe5c9; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13.5px; line-height: 1.5; }
   </style>
 </head>
 <body>
 
-  <!-- BARRA LATERAL (CON LA NUEVA SECCIÓN DE DOCUMENTOS) -->
+  <!-- BARRA LATERAL (SECCIÓN DOCUMENTOS ELIMINADA Y REEMPLAZADA POR CONTACTO) -->
   <div class="sidebar">
     <div class="brand">ABBLA ENNIS 🇮🇪</div>
     <button class="nav-btn active" onclick="switchTab('general', this)">🏠 General</button>
     <button class="nav-btn" onclick="switchTab('horario', this)">📅 Horario de Hoy</button>
     <button class="nav-btn" onclick="switchTab('mapa', this)">🗺️ Mapa Local</button>
-    <button class="nav-btn" onclick="switchTab('documentos', this)">📁 Documentos</button>
+    <button class="nav-btn" onclick="switchTab('contacto', this)">📞 Contacto</button>
   </div>
 
   <div class="main-content">
@@ -96,7 +93,7 @@
               <div class="time-block"><span id="minutes" class="time-num">00</span><span class="time-lbl">Min</span></div>
               <div class="time-block"><span id="seconds" class="time-num">00</span><span class="time-lbl">Seg</span></div>
             </div>
-            <p class="countdown-meta">Cita: 06/07/2026 a las 8:00h en Mostradores Aer Lingus (T4S).</p>
+            <p class="countdown-meta">Cita: 06/07/2026 a las 11:00h en Mostradores Aer Lingus (T4S).</p>
           </div>
         </div>
 
@@ -127,7 +124,7 @@
               <h4 style="color: var(--accent-secondary); margin-off: 5px; font-size: 14px;">📞 Asistencia 24h</h4>
               <p style="font-size: 12.5px; color: #cbd5e1; line-height: 1.4;">
                 <b>Monitoreo:</b> Equipo de monitores Abbla asignado en destino.<br>
-                <b>Seguridad:</b> Teléfonos directos disponibles en el dossier.
+                <b>Seguridad:</b> Teléfonos directos disponibles en la pestaña de Contacto.
               </p>
             </div>
           </div>
@@ -155,34 +152,50 @@
       </div>
     </div>
 
-    <!-- NUEVA PESTAÑA: DOCUMENTOS -->
-    <div id="documentos" class="section-view">
+    <!-- PESTAÑA NUEVA: CONTACTOS OFICIALES DE ABBLA -->
+    <div id="contacto" class="section-view">
       <div class="card">
-        <div class="card-header">📁 Expediente y Documentación Obligatoria</div>
-        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Mantén siempre descargados estos archivos en tu dispositivo móvil por si te quedas sin cobertura en el aeropuerto de Dublín.</p>
-        <ul class="doc-list">
-          <li class="doc-item">
-            <div>
-              <strong style="display:block; font-size:14px;">📄 Autorización de Menores (Policía/Guardia Civil)</strong>
-              <span style="font-size:12px; color:var(--text-muted);">Obligatoria para pasar el control de salida en España.</span>
-            </div>
-            <a href="#" class="doc-link">Ver Documento</a>
-          </li>
-          <li class="doc-item">
-            <div>
-              <strong style="display:block; font-size:14px;">💳 Tarjeta Sanitaria Europea (TSE)</strong>
-              <span style="font-size:12px; color:var(--text-muted);">Garantiza la cobertura médica completa en territorio irlandés.</span>
-            </div>
-            <a href="#" class="doc-link">Ver Info</a>
-          </li>
-          <li class="doc-item">
-            <div>
-              <strong style="display:block; font-size:14px;">📘 Dossier Informativo y del Alumno (Abbla)</strong>
-              <span style="font-size:12px; color:var(--text-muted);">Pautas de convivencia, normas y detalles de las familias de Ennis.</span>
-            </div>
-            <a href="#" class="doc-link">Abrir PDF</a>
-          </li>
-        </ul>
+        <div class="card-header">📞 Canales de Comunicación y Asistencia (Julio 2026)</div>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
+          Durante el mes de Julio, el horario de atención ordinaria de la oficina central es de <b>8:00h a 15:00h</b>.
+        </p>
+        
+        <div class="contact-grid">
+          <div class="contact-item">
+            <span style="font-size:12px; color:var(--accent-secondary); font-weight:bold;">☎️ TELÉFONO FIJO OFICINA</span>
+            <strong>Atención general Abbla</strong>
+            <span class="contact-phone">854 559 017</span>
+          </div>
+
+          <div class="contact-item">
+            <span style="font-size:12px; color:var(--accent); font-weight:bold;">💬 WHATSAPP ATENCIÓN</span>
+            <strong>Coordinadora Mercedes</strong>
+            <span class="contact-phone">633 66 89 60</span>
+          </div>
+
+          <div class="contact-item">
+            <span style="font-size:12px; color:var(--accent); font-weight:bold;">💬 WHATSAPP ATENCIÓN</span>
+            <strong>Coordinadora Esther</strong>
+            <span class="contact-phone">615 212 785</span>
+          </div>
+
+          <div class="contact-item contact-emergency">
+            <span style="font-size:12px; color:var(--danger); font-weight:bold;">🚨 TELÉFONO DE EMERGENCIA 24H</span>
+            <strong>Fuera de horario de oficina</strong>
+            <span class="contact-phone">633 66 89 60</span>
+          </div>
+
+          <div class="contact-item" style="grid-column: span 2; border-left: 4px solid #a855f7;">
+            <span style="font-size:12px; color:#a855f7; font-weight:bold;">🩺 ASISTENCIA MÉDICA SEGURO (GUARDME)</span>
+            <strong>Contacto médico directo para citas en Irlanda (Gestionar GP/Hospital)</strong>
+            <span class="contact-phone" style="color: #cbd5e1; font-size: 16px;">+420 221 860 685</span>
+          </div>
+        </div>
+
+        <div class="alert-box">
+          <b>⚠️ Procedimiento y uso responsable:</b><br>
+          Ante cualquier problema o necesidad que el alumno no pueda resolver de forma directa en Irlanda con su familia de acogida o su monitor local, la familia desde España debe contactar siempre **en primer lugar** con nuestro equipo de atención al alumnado. Por favor, evitemos llamar de forma directa a las familias irlandesas para prevenir malentendidos culturales, e intentemos reservar el número de emergencia exclusivamente para incidencias reales que no puedan esperar al día siguiente.
+        </div>
       </div>
     </div>
 
