@@ -4,14 +4,14 @@ const INTERES_ENNIS = [
   {
     id: "atlas",
     nombre: "Atlas Language School (Clare Area)",
-    lat: 52.84411, lon: -8.98732,
+    lat: 52.84232, lon: -8.98612,
     desc: "🏫 Academia donde se efectúan las clases matutinas de inglés.",
     apertura: 900, cierre: 1700, dias: [1, 2, 3, 4, 5] // Lun a Vie
   },
   {
     id: "tesco",
     nombre: "Tesco Superstore",
-    lat: 52.84652, lon: -8.98555,
+    lat: 52.84365, lon: -8.99021,
     desc: "🛒 Superficie comercial principal para provisiones, snacks y aseo.",
     apertura: 700, cierre: 2200, dias: [0, 1, 2, 3, 4, 5, 6] // Todos los días
   },
@@ -26,7 +26,7 @@ const INTERES_ENNIS = [
     id: "temple",
     nombre: "Temple Gate Car Park (Quedadas)",
     lat: 52.84515, lon: -8.98110,
-    desc: "🚌 Zona fijada para salidas y llegadas de los autobuses de excursiones.",
+    desc: "🚌 Zona fijada para salidas y llegadas de los autobuses de excursiones de Abbla.",
     apertura: 0, cierre: 2400, dias: [0, 1, 2, 3, 4, 5, 6]
   },
   {
@@ -62,7 +62,8 @@ function obtenerEstadoLugar(item, ennisTime) {
 function initEnnisMap() {
   if (window.ennisMap) return;
   
-  window.ennisMap = L.map('map').setView([52.8445, -8.9825], 15);
+  // Vista centrada justo en el núcleo urbano de Ennis
+  window.ennisMap = L.map('map').setView([52.8438, -8.9835], 15);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
@@ -72,8 +73,8 @@ function initEnnisMap() {
 }
 
 function renderMarcadores() {
-  // Obtenemos la hora de Irlanda para calcular el estado en el instante del clic
   const localTime = new Date();
+  // El huso de Irlanda está sincronizado por el reloj oficial restando el desfase
   const ennisTime = new Date(localTime.getTime() - 3600000); 
 
   INTERES_ENNIS.forEach(p => {
@@ -84,9 +85,9 @@ function renderMarcadores() {
     const horarioTexto = p.apertura === 0 && p.cierre === 2400 ? "24h" : `${fmtApertura} a ${fmtCierre}`;
 
     const popupHtml = `
-      <div style="color: #1e293b; font-family: sans-serif; width: 220px;">
-        <h4 style="margin:0 0 4px; color:#0f172a; border-bottom:2px solid #00ffaa; padding-bottom:3px;">${p.nombre}</h4>
-        <p style="font-size:12px; margin:5px 0;">${p.desc}</p>
+      <div style="color: #1e293b; font-family: sans-serif; width: 220px; line-height: 1.4;">
+        <h4 style="margin:0 0 4px; color:#0f172a; border-bottom:2px solid #00ffaa; padding-bottom:3px; font-size:13px;">${p.nombre}</h4>
+        <p style="font-size:12px; margin:5px 0; color:#475569;">${p.desc}</p>
         <div style="background:#f1f5f9; padding:6px; border-radius:4px; font-size:11px; margin-top:5px;">
           <b>Estado:</b> ${estadoHtml}<br>
           <b>Horario:</b> ${horarioTexto}
