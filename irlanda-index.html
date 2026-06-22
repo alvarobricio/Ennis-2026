@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Inmersión - Ennis 2026</title>
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #111827;
+      --accent: #00ffaa;
+      --accent-dark: #00b377;
+      --text-white: #ffffff;
+      --text-muted: #9ca3af;
+      --warning: #fbbf24;
+      --info: #38bdf8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-white);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar Lateral estilo Dashboard */
+    .sidebar {
+      width: 265px;
+      background: #0b0f19;
+      border-right: 2px solid var(--accent);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      position: fixed;
+      height: 100vh;
+      z-index: 10;
+    }
+
+    .sidebar h2 {
+      color: var(--accent);
+      font-size: 22px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 14px 18px;
+      text-align: left;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.25s ease;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      background: var(--accent);
+      color: #001b14;
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(0, 255, 170, 0.3);
+    }
+
+    /* Contenedor Principal */
+    .main-content {
+      margin-left: 265px;
+      flex: 1;
+      padding: 30px;
+      width: calc(100% - 265px);
+    }
+
+    .header-panel {
+      background: var(--bg-card);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .header-panel h1 {
+      font-size: 24px;
+    }
+
+    .clocks-grid {
+      display: flex;
+      gap: 25px;
+      font-size: 15px;
+    }
+
+    .clocks-grid span {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    /* Grid de tarjetas */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 22px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card h3 {
+      font-size: 18px;
+      color: var(--accent);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+    }
+
+    /* Estilos del Reloj de Cuenta Atrás */
+    .countdown-wrapper {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin: 10px 0;
+    }
+
+    .time-slot {
+      background: #1f2937;
+      padding: 12px;
+      border-radius: 10px;
+      min-width: 70px;
+      text-align: center;
+      border-bottom: 3px solid var(--accent);
+    }
+
+    .time-slot span {
+      display: block;
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .time-slot label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Estados dinámicos */
+    .status-pill {
+      background: var(--accent);
+      color: #001b14;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: bold;
+      align-self: flex-start;
+      text-transform: uppercase;
+    }
+
+    .status-pill.home { background: var(--text-muted); color: #111827; }
+    .status-pill.sleep { background: #6366f1; color: white; }
+    .status-pill.free { background: var(--info); color: #111827; }
+
+    /* Horarios y listas */
+    .flight-box {
+      background: #1f2937;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      border-left: 4px solid var(--warning);
+    }
+
+    .checklist-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .checklist-row input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 18px;
+      height: 18px;
+    }
+
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin-top: 10px;
+    }
+
+    .schedule-table th, .schedule-table td {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px;
+      text-align: left;
+    }
+
+    .schedule-table th {
+      background: #1f2937;
+      color: var(--accent);
+    }
+
+    .schedule-table tr.active-row {
+      background: rgba(0, 255, 170, 0.15);
+      border-left: 4px solid var(--accent);
+      font-weight: bold;
+    }
+
+    .section-view {
+      display: none;
+    }
+    .section-view.active {
+      display: grid;
+    }
+
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 2px solid var(--accent); }
+      .main-content { margin-left: 0; width: 100%; padding: 15px; }
+      .clocks-grid { flex-direction: column; gap: 5px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Ennis 2026 🇮🇪</h2>
+    <button class="nav-btn active" onclick="switchTab('dashboard', this)">🏠 General</button>
+    <button class="nav-btn" onclick="switchTab('horario', this)">📅 Horario Diario</button>
+    <button class="nav-btn" onclick="switchTab('vuelos', this)">✈️ Info Vuelos Madrid</button>
+    <button class="nav-btn" onclick="switchTab('docs', this)">📝 Lista de Control</button>
+  </div>
+
+  <div class="main-content">
+    <div class="header-panel">
+      <h1>Módulo <span id="nav-title">General</span></h1>
+      <div class="clocks-grid">
+        <div>Madrid: <span id="clock-madrid">00:00:00</span></div>
+        <div>Ennis: <span id="clock-ennis">00:00:00</span></div>
+      </div>
+    </div>
+
+    <div id="dashboard" class="section-view active dashboard-grid">
+      
+      <div class="card">
+        <h3>⏱️ Cuenta Atrás al Destino</h3>
+        <p style="font-size: 13px; color: var(--text-muted);">Tiempo hasta la cita grupal en Barajas (06 Jul - 08:00h):</p>
+        <div class="countdown-wrapper" id="countdown">
+          <div class="time-slot"><span id="days">00</span><label>Días</label></div>
+          <div class="time-slot"><span id="hours">00</span><label>Horas</label></div>
+          <div class="time-slot"><span id="minutes">00</span><label>Min</label></div>
+          <div class="time-slot"><span id="seconds">00</span><label>Seg</label></div>
+        </div>
+        <p id="countdown-status" style="text-align: center; font-weight: bold; font-size: 14px; color: var(--accent);"></p>
+      </div>
+
+      <div class="card">
+        <h3>📍 Monitorización en Tiempo Real</h3>
+        <div id="activity-badge" class="status-pill">Sincronizando...</div>
+        <p style="font-size: 16px; font-weight: bold;" id="activity-name">-</p>
+        <p style="font-size: 13px; color: var(--text-muted);" id="activity-desc">-</p>
+        <div style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+          <span style="color: var(--warning); font-size: 12px; font-weight: bold;">💤 Alerta de Sueño Recomendada:</span>
+          <p id="sleep-recommendation" style="font-size: 13px; margin-top: 3px;"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🌦️ Clima de Ennis Directo (Open-Meteo API)</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+          <span id="weather-temp" style="font-size: 38px; font-weight: bold; color: var(--accent);">--°C</span>
+          <div style="text-align: right; font-size: 13px; color: var(--text-muted);">
+            <p id="weather-status">Consultando satélite...</p>
+            <p id="weather-wind">Viento: -- km/h</p>
+          </div>
+        </div>
+        <p style="font-size: 12px; background: rgba(56, 189, 248, 0.08); padding: 10px; border-radius: 8px; color: var(--info); margin-top: 5px;">
+          💡 Recuerda: El clima irlandés cambia rápido. Aunque veas sol, lleva siempre el chubasquero en la mochila de abbla.
+        </p>
+      </div>
+    </div>
+
+    <div id="horario" class="section-view dashboard-grid" style="grid-template-columns: 1fr;">
+      <div class="card">
+        <h3>📅 Estructura de Rutina Semanal (Lunes a Viernes)</h3>
+        <p style="font-size: 13px; color: var(--text-muted);">La fila se iluminará en verde cuando coincida con la hora oficial en Irlanda.</p>
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>Bloque (Hora Irlanda)</th>
+              <th>Actividad o Tarea Asociada</th>
+              <th>Detalles e Instrucciones</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body">
+            <tr id="row-0745">
+              <td><b>07:45 - 08:45</b></td>
+              <td>🍳 Desayuno en Familia</td>
+              <td>Obligatorio bajar bien vestido. Conversa con tus anfitriones por la mañana.</td>
+            </tr>
+            <tr id="row-0900">
+              <td><b>09:00 - 12:45</b></td>
+              <td>📚 Clases de Inglés</td>
+              <td>Desarrollo de competencias lingüísticas en la escuela local según nivel de idioma.</td>
+            </tr>
+            <tr id="row-1245">
+              <td><b>12:45 - 14:00</b></td>
+              <td>🥪 Almuerzo / Pack-Lunch</td>
+              <td>Comida ligera preparada por tu Host Family. Descanso grupal guiado por monitores.</td>
+            </tr>
+            <tr id="row-1400">
+              <td><b>14:00 - 17:45</b></td>
+              <td>🎯 Actividades de Tarde / Tuesday Tour</td>
+              <td>Deportes, talleres culturales o visitas. Los martes se realizan excursiones extendidas.</td>
+            </tr>
+            <tr id="row-1745">
+              <td><b>17:45 - 18:30</b></td>
+              <td>🚌 Traslado a Casa</td>
+              <td>Regreso ordenado a la vivienda familiar asignada en Ennis.</td>
+            </tr>
+            <tr id="row-1830">
+              <td><b>18:30 - 20:00</b></td>
+              <td>🏠 Cena con la Host Family</td>
+              <td>Momento prioritario de inmersión. Está prohibido usar el teléfono en la mesa.</td>
+            </tr>
+            <tr id="row-2000">
+              <td><b>20:00 - 22:15</b></td>
+              <td>📱 Tiempo Libre Personal</td>
+              <td>Organizar mochila para el día siguiente, ducha y contacto con la familia de España.</td>
+            </tr>
+            <tr id="row-sleep">
+              <td><b>22:15 - 07:45</b></td>
+              <td>🛌 Hora de Dormir Recomendada</td>
+              <td>Silencio absoluto en el cuarto. Es crucial descansar para el ritmo diario del viaje.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="vuelos" class="section-view dashboard-grid">
+      <div class="card">
+        <h3>🛫 Operación Ida (Madrid - T2)</h3>
+        <div class="flight-box">
+          <p><b>Fecha:</b> Lunes, 6 de Julio de 2026</p>
+          <p><b>Punto de Encuentro:</b> Mostradores de Aer Lingus (T2 Barajas)</p>
+          <p><b>Hora de Cita Obligatoria:</b> 08:00h</p>
+          <p><b>Despegue:</b> 10:40h</p>
+          <p><b>Vuelo asignado:</b> Aer Lingus - <b>EI 593</b></p>
+          <p><b>Aterrizaje en Dublín:</b> 12:20h (Hora local irlandesa)</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🛬 Operación Regreso (Dublín - Madrid)</h3>
+        <div class="flight-box" style="border-left-color: var(--accent);">
+          <p><b>Fecha:</b> Lunes, 27 de Julio de 2026</p>
+          <p><b>Despegue desde Irlanda:</b> 06:20h (Madrugón coordinado con traslados)</p>
+          <p><b>Vuelo asignado:</b> Aer Lingus - <b>EI 592</b></p>
+          <p><b>Llegada a Madrid:</b> 10:00h (Hora española)</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="docs" class="section-view dashboard-grid">
+      <div class="card" style="grid-column: span 2;">
+        <h3>📝 Listado de Verificación de Documentación Obligatoria</h3>
+        <p style="font-size: 13px; color: var(--text-muted);">Marca cada elemento 48 horas antes de presentarte en Barajas:</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+          <label class="checklist-row"><input type="checkbox"> 🛂 Pasaporte original o DNI vigente.</label>
+          <label class="checklist-row"><input type="checkbox"> 💳 Tarjeta Sanitaria Europea (TSE) física en vigor.</label>
+          <label class="checklist-row"><input type="checkbox"> 👮 Autorización Policial de Salida de Menores (Firmada en Jefatura con originales encima).</label>
+          <label class="checklist-row"><input type="checkbox"> 🛡️ Póliza de Seguro Médico y de Viaje Completo (Suministrada por abbla).</label>
+          <label class="checklist-row"><input type="checkbox"> 🔌 Adaptador de enchufe para Reino Unido/Irlanda (Clavijas planas de Tipo G).</label>
+        </div>
+
+        <div style="background: rgba(0, 255, 170, 0.05); padding: 15px; border-radius: 10px; font-size: 13px; border-left: 3px solid var(--accent); margin-top: 15px;">
+          <p><b>📌 Campos requeridos para rellenar la Autorización de Menores:</b></p>
+          <p style="margin-top: 4px;">• <b>Empresa organizadora:</b> Education Department, S.L. (abbla idiomas)</p>
+          <p>• <b>CIF Fiscal:</b> B44917177</p>
+          <p>• <b>Contacto de Emergencia Agencia:</b> 854 559 017</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
