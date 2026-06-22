@@ -33,6 +33,9 @@ const DIARIO_PDF_DATA = {
 };
 
 function updateDynamicSchedule(ennisTime) {
+  const localTime = new Date();
+  const inicioViaje = new Date("2026-07-06T00:00:00+01:00");
+  
   const a = ennisTime.getFullYear();
   const m = String(ennisTime.getMonth() + 1).padStart(2, '0');
   const d = String(ennisTime.getDate()).padStart(2, '0');
@@ -42,48 +45,76 @@ function updateDynamicSchedule(ennisTime) {
   const titleEl = document.getElementById("schedule-day-title");
   const badgeEl = document.getElementById("current-date-badge");
 
-  if (!badgeEl || !container) return;
-
-  badgeEl.textContent = `${d}/${m}/${a}`;
-  const horaNumerica = ennisTime.getHours() * 100 + ennisTime.getMinutes();
-
-  let agenda = DIARIO_PDF_DATA[claveHoy];
+  if (badgeEl) badgeEl.textContent = `${d}/${m}/${a}`;
   
-  if (!agenda) {
-    agenda = DIARIO_PDF_DATA["2026-07-06"];
-    titleEl.textContent = `${agenda.titulo} (Vista Previa)`;
+  // CONTROL DE ESTADO EN EL HOME (PRE-VIAJE VS VIAJE ACTIVO)
+  if (localTime < inicioViaje) {
+    // Si estamos antes del 6 de Julio
+    const diasFaltantes = Math.ceil((inicioViaje - localTime) / (1000 * 60 * 60 * 24));
+    
+    if (document.getElementById("realtime-badge")) {
+      document.getElementById("realtime-badge").textContent = "⏳ PRE-VIAJE";
+      document.getElementById("realtime-badge").style.background = "#f59e0b"; // Naranja de espera
+      document.getElementById("realtime-activity").textContent = "Preparando maletas y documentos";
+      document.getElementById("realtime-desc").textContent = `El programa Abbla Ennis comienza en ${diasFaltantes} días. Revisa tener tu DNI/Pasaporte en regla y la autorización policial firmada.`;
+    }
   } else {
-    titleEl.textContent = agenda.titulo;
+    // Si ya estamos dentro de las fechas del viaje
+    const horaNumerica = ennisTime.getHours() * 100 + ennisTime.getMinutes();
+    let agenda = DIARIO_PDF_DATA[claveHoy];
+    
+    if (agenda) {
+      if (titleEl) titleEl.textContent = agenda.titulo;
+      let encontrado = false;
+
+      for (let i = 0; i < agenda.bloques.length; i++) {
+        const b = agenda.bloques[i];
+        if (horaNumerica >= b.de && horaNumerica < b.a) {
+          document.getElementById("realtime-activity").textContent = b.tarea;
+          document.getElementById("realtime-desc").textContent = b.info;
+          document.getElementById("realtime-badge").textContent = "⚡ EN CURSO";
+          document.getElementById("realtime-badge").style.background = "#00ffaa";
+          
+          // Buscar próxima actividad si existe
+          if (i + 1 < agenda.bloques.length) {
+            const proxima = agenda.bloques[i+1];
+            const fDe = String(Math.floor(proxima.de / 100)).padStart(2, '0') + ":" + String(proxima.de % 100).padStart(2, '0');
+            document.getElementById("next-activity-box").innerHTML = `<b>Próxima (${fDe}):</b> ${proxima.tarea}`;
+          } else {
+            document.getElementById("next-activity-box").innerHTML = "<b>Próxima:</b> Fin del itinerario de hoy";
+          }
+          encontrado = true;
+          break;
+        }
+      }
+
+      if (!encontrado) {
+        document.getElementById("realtime-activity").textContent = "Tiempo Libre / Descanso";
+        document.getElementById("realtime-desc").textContent = "Descanso o convivencia en el hogar de la Host Family.";
+        document.getElementById("realtime-badge").textContent = "💤 LIBRE";
+        document.getElementById("realtime-badge").style.background = "#38bdf8";
+        document.getElementById("next-activity-box").innerHTML = "";
+      }
+    }
   }
 
-  let html = `<table class="schedule-table"><thead><tr><th>Horario</th><th>Actividad</th><th>Detalles</th></tr></thead><tbody>`;
-  let encontrado = false;
-
-  agenda.bloques.forEach(b => {
-    const activo = (horaNumerica >= b.de && horaNumerica < b.a);
-    const filaClase = activo ? 'class="active-row"' : '';
+  // Renderizar la tabla si estamos en la pestaña del horario de hoy
+  let agendaTabla = DIARIO_PDF_DATA[claveHoy] || DIARIO_PDF_DATA["2026-07-06"];
+  if (container && agendaTabla) {
+    let html = `<table class="schedule-table"><thead><tr><th>Horario</th><th>Actividad</th><th>Detalles</th></tr></thead><tbody>`;
+    const horaNumerica = ennisTime.getHours() * 100 + ennisTime.getMinutes();
     
-    const fDe = String(Math.floor(b.de / 100)).padStart(2, '0') + ":" + String(b.de % 100).padStart(2, '0');
-    const fA = String(Math.floor(b.a / 100)).padStart(2, '0') + ":" + String(b.a % 100).padStart(2, '0');
+    agendaTabla.bloques.forEach(b => {
+      const esHoyMismo = (claveHoy === "2026-07-06" || claveHoy === "2026-07-07" || claveHoy === "2026-07-27");
+      const activo = esHoyMismo && (horaNumerica >= b.de && horaNumerica < b.a);
+      const filaClase = activo ? 'class="active-row"' : '';
+      
+      const fDe = String(Math.floor(b.de / 100)).padStart(2, '0') + ":" + String(b.de % 100).padStart(2, '0');
+      const fA = String(Math.floor(b.a / 100)).padStart(2, '0') + ":" + String(b.a % 100).padStart(2, '0');
 
-    html += `<tr ${filaClase}><td><b>${fDe} - ${fA}</b></td><td>${b.tarea}</td><td>${b.info}</td></tr>`;
-
-    if (activo) {
-      document.getElementById("realtime-activity").textContent = b.tarea;
-      document.getElementById("realtime-desc").textContent = b.info;
-      document.getElementById("realtime-badge").textContent = "En Curso";
-      document.getElementById("realtime-badge").style.background = "#00ffaa";
-      encontrado = true;
-    }
-  });
-
-  html += "</tbody></table>";
-  container.innerHTML = html;
-
-  if (!encontrado) {
-    document.getElementById("realtime-activity").textContent = "Tiempo de descanso";
-    document.getElementById("realtime-desc").textContent = "Disfruta de tu tiempo libre o descanso en familia.";
-    document.getElementById("realtime-badge").textContent = "Libre";
-    document.getElementById("realtime-badge").style.background = "#38bdf8";
+      html += `<tr ${filaClase}><td><b>${fDe} - ${fA}</b></td><td>${b.tarea}</td><td>${b.info}</td></tr>`;
+    });
+    html += "</tbody></table>";
+    container.innerHTML = html;
   }
 }
