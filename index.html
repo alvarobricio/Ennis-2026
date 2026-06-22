@@ -3,130 +3,354 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Inmersión - Ennis 2026</title>
+  <title>Abbla Ennis Dashboard</title>
+  
+  <!-- Leaflet CSS para el Mapa -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
   <style>
     :root {
-      --bg-main: #0f172a;
-      --bg-card: #111827;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --bg-sidebar: #020617;
       --accent: #00ffaa;
-      --accent-dark: #00b377;
-      --text-white: #ffffff;
-      --text-muted: #9ca3af;
-      --warning: #fbbf24;
-      --info: #38bdf8;
+      --accent-secondary: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-white); display: flex; min-height: 100vh; overflow-x: hidden; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-    /* Sidebar */
-    .sidebar { width: 265px; background: #0b0f19; border-right: 2px solid var(--accent); padding: 20px; display: flex; flex-direction: column; gap: 15px; position: fixed; height: 100vh; z-index: 10; }
-    .sidebar h2 { color: var(--accent); font-size: 22px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
-    .nav-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-muted); padding: 14px 18px; text-align: left; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.25s ease; }
-    .nav-btn:hover, .nav-btn.active { background: var(--accent); color: #001b14; border-color: var(--accent); box-shadow: 0 0 12px rgba(0, 255, 170, 0.3); }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-    /* Contenido Principal */
-    .main-content { margin-left: 265px; flex: 1; padding: 30px; width: calc(100% - 265px); }
-    .header-panel { background: var(--bg-card); border: 2px solid var(--accent); border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    .header-panel h1 { font-size: 24px; }
-    .clocks-grid { display: flex; gap: 25px; font-size: 15px; }
-    .clocks-grid span { color: var(--accent); font-weight: bold; }
+    /* BARRA LATERAL (SIDEBAR) */
+    .sidebar {
+      width: 260px;
+      background-color: var(--bg-sidebar);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border-right: 1px solid #334155;
+    }
 
-    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-    .card { background: var(--bg-card); border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.05); padding: 22px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; gap: 14px; }
-    .card h3 { font-size: 18px; color: var(--accent); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 8px; }
+    .brand {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #334155;
+    }
 
-    /* Cuenta atrás */
-    .countdown-wrapper { display: flex; gap: 12px; justify-content: center; margin: 10px 0; }
-    .time-slot { background: #1f2937; padding: 12px; border-radius: 10px; min-width: 70px; text-align: center; border-bottom: 3px solid var(--accent); }
-    .time-slot span { display: block; font-size: 24px; font-weight: bold; color: var(--accent); }
-    .time-slot label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 15px;
+      text-align: left;
+      font-size: 15px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-    .status-pill { background: var(--accent); color: #001b14; padding: 6px 14px; border-radius: 30px; font-size: 12px; font-weight: bold; align-self: flex-start; text-transform: uppercase; }
+    .nav-btn:hover {
+      background: #0f172a;
+      color: var(--text);
+    }
 
-    /* Estilos del mapa */
-    #map { width: 100%; height: 500px; border-radius: 12px; border: 2px solid var(--accent); z-index: 1; }
+    .nav-btn.active {
+      background: var(--accent);
+      color: var(--bg-sidebar);
+      font-weight: bold;
+    }
 
-    /* Estilos de las tablas horarias */
-    .schedule-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 5px; }
-    .schedule-table th, .schedule-table td { border: 1px solid rgba(255, 255, 255, 0.08); padding: 12px; text-align: left; }
-    .schedule-table th { background: #1f2937; color: var(--accent); }
-    .schedule-table tr.active-row { background: rgba(0, 255, 170, 0.15); border-left: 4px solid var(--accent); font-weight: bold; }
+    /* CONTENEDOR PRINCIPAL */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
 
-    .section-view { display: none; }
-    .section-view.active { display: grid; }
+    /* CABECERA DE MÓDULO */
+    .module-header {
+      background: var(--bg-sidebar);
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+    }
 
-    @media (max-width: 900px) {
-      body { flex-direction: column; }
-      .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 2px solid var(--accent); }
-      .main-content { margin-left: 0; width: 100%; padding: 15px; }
+    .module-header h2 {
+      font-size: 22px;
+    }
+
+    .clocks-container {
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+      background: var(--bg-dark);
+      padding: 8px 15px;
+      border-radius: 20px;
+      border: 1px solid var(--accent);
+    }
+
+    .clock-span {
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    /* VISTAS DE LAS PESTAÑAS */
+    .section-view {
+      display: none;
+      padding: 30px;
+    }
+
+    .section-view.active {
+      display: block;
+    }
+
+    /* CUADRÍCULA DEL HOME */
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 25px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #334155;
+    }
+
+    .card-header {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--accent-secondary);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* CONTADORES CUENTA ATRÁS */
+    .countdown-display {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 15px;
+    }
+
+    .time-block {
+      text-align: center;
+    }
+
+    .time-num {
+      font-size: 32px;
+      font-weight: bold;
+      color: var(--accent);
+      display: block;
+    }
+
+    .time-lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .countdown-meta {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 15px;
+    }
+
+    /* BADGES Y ALERTAS */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--bg-sidebar);
+    }
+
+    /* TABLA DE HORARIOS */
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .schedule-table th, .schedule-table td {
+      padding: 12px 15px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .schedule-table th {
+      background: #0f172a;
+      color: var(--accent-secondary);
+    }
+
+    .schedule-table tr {
+      border-bottom: 1px solid #334155;
+    }
+
+    .schedule-table tr.active-row {
+      background: rgba(0, 255, 170, 0.1);
+      border-left: 4px solid var(--accent);
+    }
+
+    /* MAPA CONTENEDOR */
+    #map {
+      width: 100%;
+      height: 550px;
+      border-radius: 12px;
+      border: 1px solid #334155;
     }
   </style>
 </head>
 <body>
 
+  <!-- SIDEBAR IZQUIERDA -->
   <div class="sidebar">
-    <h2>Abbla Ennis 🇮🇪</h2>
-    <button class="nav-btn active" onclick="switchTab('dashboard', this)">🏠 General</button>
+    <div class="brand">ABBLA ENNIS 🇮🇪</div>
+    <button class="nav-btn active" onclick="switchTab('general', this)">🏠 General</button>
     <button class="nav-btn" onclick="switchTab('horario', this)">📅 Horario de Hoy</button>
     <button class="nav-btn" onclick="switchTab('mapa', this)">🗺️ Mapa Local</button>
   </div>
 
+  <!-- PANEL DE CONTENIDO -->
   <div class="main-content">
-    <div class="header-panel">
-      <h1>Módulo <span id="nav-title">General</span></h1>
-      <div class="clocks-grid">
-        <div>Madrid (GMT+2): <span id="clock-madrid">00:00:00</span></div>
-        <div>Ennis (GMT+1): <span id="clock-ennis">00:00:00</span></div>
+    
+    <!-- HEADER DINÁMICO -->
+    <div class="module-header">
+      <h2 id="nav-title">General</h2>
+      <div class="clocks-container">
+        <div>Madrid (GMT+2): <span id="clock-madrid" class="clock-span">00:00:00</span></div>
+        <div>Ennis (GMT+1): <span id="clock-ennis" class="clock-span">00:00:00</span></div>
       </div>
     </div>
 
-    <div id="dashboard" class="section-view active dashboard-grid">
-      <div class="card">
-        <h3>⏱️ Cuenta para la Salida (Madrid)</h3>
-        <div class="countdown-wrapper" id="countdown">
-          <div class="time-slot"><span id="days">00</span><label>Días</label></div>
-          <div class="time-slot"><span id="hours">00</span><label>Horas</label></div>
-          <div class="time-slot"><span id="minutes">00</span><label>Min</label></div>
-          <div class="time-slot"><span id="seconds">00</span><label>Seg</label></div>
-        </div>
-        <p style="font-size: 12px; color: var(--text-muted); text-align: center;">Cita: 06/07/2026 a las 08:00h en Barajas T2.</p>
-      </div>
-
-      <div class="card">
-        <h3>📍 Estado Inmersión en Tiempo Real</h3>
-        <div id="realtime-badge" class="status-pill" style="background: var(--info); color: #0f172a;">Detectando fecha...</div>
-        <p style="font-size: 16px; font-weight: bold;" id="realtime-activity">Sincronizando...</p>
-        <p style="font-size: 13px; color: var(--text-muted);" id="realtime-desc">Calculando tarea según el reloj oficial de Irlanda.</p>
-      </div>
-    </div>
-
-    <div id="horario" class="section-view dashboard-grid" style="grid-template-columns: 1fr;">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
-          <h3 style="border-bottom: none;" id="schedule-day-title">📅 Plan Diario</h3>
-          <span id="current-date-badge" style="color: var(--accent); font-weight: bold; font-size: 14px;">--/--/2026</span>
-        </div>
-        <p style="font-size: 13px; color: var(--text-muted);">El sistema evalúa el día exacto del viaje y te muestra solo lo que te toca hacer hoy.</p>
+    <!-- PESTAÑA: GENERAL (HOME) -->
+    <div id="general" class="section-view active">
+      <div class="home-grid">
         
-        <div id="daily-schedule-container"></div>
+        <!-- CUENTA ATRÁS -->
+        <div class="card">
+          <div class="card-header">⏱️ Cuenta para la Salida (Madrid)</div>
+          <div id="countdown">
+            <div class="countdown-display">
+              <div class="time-block"><span id="days" class="time-num">00</span><span class="time-lbl">Días</span></div>
+              <div class="time-block"><span id="hours" class="time-num">00</span><span class="time-lbl">Horas</span></div>
+              <div class="time-block"><span id="minutes" class="time-num">00</span><span class="time-lbl">Min</span></div>
+              <div class="time-block"><span id="seconds" class="time-num">00</span><span class="time-lbl">Seg</span></div>
+            </div>
+            <p class="countdown-meta">Cita: 06/07/2026 a las 11:00h en Mostradores Aer Lingus (T4S).</p>
+          </div>
+        </div>
+
+        <!-- ESTADO EN TIEMPO REAL -->
+        <div class="card">
+          <div class="card-header">📍 Estado Inmersión en Tiempo Real</div>
+          <div>
+            <span id="realtime-badge" class="badge" style="background:#f59e0b;">⏳ PRE-VIAJE</span>
+            <h3 id="realtime-activity" style="margin: 10px 0 5px 0; color: #fff;">Preparando viaje...</h3>
+            <p id="realtime-desc" style="color: var(--text-muted); font-size: 13.5px; margin-bottom: 15px;">Evaluando el cronograma del PDF...</p>
+            
+            <div id="next-activity-box" style="background: #0f172a; padding: 10px; border-radius: 6px; border-left: 3px solid var(--accent-secondary); font-size: 13px; color: #cbd5e1;">
+              <b>Próxima:</b> Esperando inicio del viaje...
+            </div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN LOGÍSTICA COMPLETA PARA RELLENAR -->
+        <div class="card" style="grid-column: span 2; margin-top: 5px;">
+          <div class="card-header">ℹ️ Información Clave de Emergencia y Logística</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+            <div style="background: #111827; padding: 12px; border-radius: 6px; border: 1px solid #334155;">
+              <h4 style="color: var(--accent); margin: 0 0 5px 0; font-size: 14px;">✈️ Información de Vuelo</h4>
+              <p style="font-size: 12.5px; color: #cbd5e1; line-height: 1.4;">
+                <b>Aerolínea:</b> Aer Lingus<br>
+                <b>Ida (06/07):</b> Madrid T4S → Dublín T2<br>
+                <b>Vuelta (27/07):</b> Dublín T2 → Madrid T4S
+              </p>
+            </div>
+            <div style="background: #111827; padding: 12px; border-radius: 6px; border: 1px solid #334155;">
+              <h4 style="color: var(--accent-secondary); margin: 0 0 5px 0; font-size: 14px;">📞 Contactos Útiles</h4>
+              <p style="font-size: 12.5px; color: #cbd5e1; line-height: 1.4;">
+                <b>Monitores:</b> Cobertura 24h Abbla.<br>
+                <b>Punto de Quedada:</b> Temple Gate Car Park.<br>
+                <b>Seguro:</b> Tarjeta Sanitaria Europea.
+              </p>
+            </div>
+            <div style="background: #111827; padding: 12px; border-radius: 6px; border: 1px solid #334155;">
+              <h4 style="color: #fbbf24; margin: 0 0 5px 0; font-size: 14px;">🧳 Equipaje Permitido</h4>
+              <p style="font-size: 12.5px; color: #cbd5e1; line-height: 1.4;">
+                <b>Facturado:</b> 1 Maleta grande (Máx 20kg).<br>
+                <b>Mano:</b> 1 Mochila pequeña debajo de tu asiento.<br>
+                <b>Clima:</b> ¡Llevar chubasquero siempre!
+              </p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <div id="mapa" class="section-view dashboard-grid" style="grid-template-columns: 1fr;">
+    <!-- PESTAÑA: HORARIO DE HOY -->
+    <div id="horario" class="section-view">
       <div class="card">
-        <h3>🗺️ Localizaciones de Interés en Ennis</h3>
-        <p style="font-size: 13px; color: var(--text-muted);">Puntos geográficos extraídos de las pautas del viaje de Abbla.</p>
+        <div class="card-header" style="justify-content: space-between;">
+          <span id="schedule-day-title">Itinerario de Control</span>
+          <span id="current-date-badge" class="badge" style="background: var(--accent-secondary); color:#000;">--/--/----</span>
+        </div>
+        <div id="daily-schedule-container">
+          <p style="color: var(--text-muted);">Cargando tabla de actividades relativas al PDF...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA: MAPA LOCAL -->
+    <div id="mapa" class="section-view">
+      <div class="card">
+        <div class="card-header">🗺️ Plano Urbano de Ennis (Vista Limpia)</div>
         <div id="map"></div>
       </div>
     </div>
 
   </div>
 
+  <!-- Scripts de Leaflet (Mapa) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="app.js"></script>
+  
+  <!-- Vinculación de tus archivos JavaScript lógicos -->
   <script src="horario.js"></script>
   <script src="mapa.js"></script>
+  <script src="app.js"></script>
+
 </body>
 </html>
