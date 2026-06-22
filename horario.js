@@ -1,4 +1,4 @@
-// BASE DE DATOS REAL DEL PDF (ENNIS - JULIO 2026)
+// BASE DE DATOS REAL DEL VIAJE (JULIO 2026)
 const DIARIO_PDF_DATA = {
   "2026-07-06": {
     titulo: "Lunes 6 de Julio - ¡Día de Vuelo y Llegada!",
@@ -17,7 +17,7 @@ const DIARIO_PDF_DATA = {
       { de: 0, a: 900, tarea: "🍳 Desayuno en Casa", info: "Primer desayuno con tu Host Family y traslado puntual hacia las aulas." },
       { de: 900, a: 1245, tarea: "📋 Test de Nivel y Orientación", info: "Presentación, test para asignación de grupo académico y recorrido por las instalaciones." },
       { de: 1245, a: 1345, tarea: "🥪 Almuerzo Pack-Lunch", info: "Comida con el grupo usando el almuerzo frío para llevar preparado por tu familia." },
-      { de: 1345, a: 1715, tarea: "📖 Clases de Inglés", info: "Bloque lectivo por la tarde en las aulas de Atlas Language School en Ennis." },
+      { de: 1345, a: 1715, tarea: "📖 Clases de Inglés", info: "Bloque lectivo por la tarde en las aulas de la academia en Ennis." },
       { de: 1715, a: 2359, tarea: "🏠 Cena y Convivencia", info: "Regreso a casa para cenar con tu Host Family y practicar el idioma." }
     ]
   },
@@ -47,19 +47,19 @@ function updateDynamicSchedule(ennisTime) {
 
   if (badgeEl) badgeEl.textContent = `${d}/${m}/${a}`;
   
-  // CONTROL DE ESTADO EN EL HOME (PRE-VIAJE VS VIAJE ACTIVO)
+  // 1. CONTROL LOGICO PARA EL HOME (MÓDULO GENERAL)
   if (localTime < inicioViaje) {
-    // Si estamos antes del 6 de Julio
     const diasFaltantes = Math.ceil((inicioViaje - localTime) / (1000 * 60 * 60 * 24));
     
     if (document.getElementById("realtime-badge")) {
       document.getElementById("realtime-badge").textContent = "⏳ PRE-VIAJE";
-      document.getElementById("realtime-badge").style.background = "#f59e0b"; // Naranja de espera
-      document.getElementById("realtime-activity").textContent = "Preparando maletas y documentos";
-      document.getElementById("realtime-desc").textContent = `El programa Abbla Ennis comienza en ${diasFaltantes} días. Revisa tener tu DNI/Pasaporte en regla y la autorización policial firmada.`;
+      document.getElementById("realtime-badge").style.background = "#f59e0b";
+      document.getElementById("realtime-activity").textContent = "Fase de Preparativos";
+      document.getElementById("realtime-desc").textContent = `Faltan ${diasFaltantes} días para el inicio del programa Abbla Ennis. Asegúrate de tener toda tu documentación lista.`;
+      document.getElementById("next-activity-box").innerHTML = "<b>Próximo hito:</b> Presentación en el aeropuerto de Madrid Barajas T4S.";
     }
   } else {
-    // Si ya estamos dentro de las fechas del viaje
+    // Lógica activa durante el viaje
     const horaNumerica = ennisTime.getHours() * 100 + ennisTime.getMinutes();
     let agenda = DIARIO_PDF_DATA[claveHoy];
     
@@ -75,13 +75,12 @@ function updateDynamicSchedule(ennisTime) {
           document.getElementById("realtime-badge").textContent = "⚡ EN CURSO";
           document.getElementById("realtime-badge").style.background = "#00ffaa";
           
-          // Buscar próxima actividad si existe
           if (i + 1 < agenda.bloques.length) {
             const proxima = agenda.bloques[i+1];
             const fDe = String(Math.floor(proxima.de / 100)).padStart(2, '0') + ":" + String(proxima.de % 100).padStart(2, '0');
             document.getElementById("next-activity-box").innerHTML = `<b>Próxima (${fDe}):</b> ${proxima.tarea}`;
           } else {
-            document.getElementById("next-activity-box").innerHTML = "<b>Próxima:</b> Fin del itinerario de hoy";
+            document.getElementById("next-activity-box").innerHTML = "<b>Próxima:</b> Fin de la jornada de hoy";
           }
           encontrado = true;
           break;
@@ -90,7 +89,7 @@ function updateDynamicSchedule(ennisTime) {
 
       if (!encontrado) {
         document.getElementById("realtime-activity").textContent = "Tiempo Libre / Descanso";
-        document.getElementById("realtime-desc").textContent = "Descanso o convivencia en el hogar de la Host Family.";
+        document.getElementById("realtime-desc").textContent = "Convivencia con la Host Family o tiempo de descanso.";
         document.getElementById("realtime-badge").textContent = "💤 LIBRE";
         document.getElementById("realtime-badge").style.background = "#38bdf8";
         document.getElementById("next-activity-box").innerHTML = "";
@@ -98,23 +97,37 @@ function updateDynamicSchedule(ennisTime) {
     }
   }
 
-  // Renderizar la tabla si estamos en la pestaña del horario de hoy
-  let agendaTabla = DIARIO_PDF_DATA[claveHoy] || DIARIO_PDF_DATA["2026-07-06"];
-  if (container && agendaTabla) {
-    let html = `<table class="schedule-table"><thead><tr><th>Horario</th><th>Actividad</th><th>Detalles</th></tr></thead><tbody>`;
-    const horaNumerica = ennisTime.getHours() * 100 + ennisTime.getMinutes();
-    
-    agendaTabla.bloques.forEach(b => {
-      const esHoyMismo = (claveHoy === "2026-07-06" || claveHoy === "2026-07-07" || claveHoy === "2026-07-27");
-      const activo = esHoyMismo && (horaNumerica >= b.de && horaNumerica < b.a);
-      const filaClase = activo ? 'class="active-row"' : '';
-      
-      const fDe = String(Math.floor(b.de / 100)).padStart(2, '0') + ":" + String(b.de % 100).padStart(2, '0');
-      const fA = String(Math.floor(b.a / 100)).padStart(2, '0') + ":" + String(b.a % 100).padStart(2, '0');
+  // 2. CORRECCIÓN CRÍTICA DE LA PESTAÑA: HORARIO DE HOY
+  if (container) {
+    let agendaHoy = DIARIO_PDF_DATA[claveHoy];
 
-      html += `<tr ${filaClase}><td><b>${fDe} - ${fA}</b></td><td>${b.tarea}</td><td>${b.info}</td></tr>`;
-    });
-    html += "</tbody></table>";
-    container.innerHTML = html;
+    if (!agendaHoy) {
+      // SI NO ESTAMOS EN DÍA DE VIAJE, NO SE MUESTRA NINGUNA TABLA FALSAMENTE
+      if (titleEl) titleEl.textContent = "Itinerario de Control";
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+          <span style="font-size: 48px; display: block; margin-bottom: 15px;">🗓️</span>
+          <p style="font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 5px;">No hay actividades programadas para hoy</p>
+          <p style="font-size: 13px; max-width: 400px; margin: 0 auto;">El calendario detallado paso a paso se activará de forma automática el <b>Lunes 6 de Julio de 2026</b> al comenzar el viaje.</p>
+        </div>
+      `;
+    } else {
+      // Si es un día del viaje (ej: 6 de julio), se pinta su respectiva tabla real
+      if (titleEl) titleEl.textContent = agendaHoy.titulo;
+      let html = `<table class="schedule-table"><thead><tr><th>Horario</th><th>Actividad</th><th>Detalles</th></tr></thead><tbody>`;
+      const horaNumerica = ennisTime.getHours() * 100 + ennisTime.getMinutes();
+      
+      agendaHoy.bloques.forEach(b => {
+        const activo = (horaNumerica >= b.de && horaNumerica < b.a);
+        const filaClase = activo ? 'class="active-row"' : '';
+        
+        const fDe = String(Math.floor(b.de / 100)).padStart(2, '0') + ":" + String(b.de % 100).padStart(2, '0');
+        const fA = String(Math.floor(b.a / 100)).padStart(2, '0') + ":" + String(b.a % 100).padStart(2, '0');
+
+        html += `<tr ${filaClase}><td><b>${fDe} - ${fA}</b></td><td>${b.tarea}</td><td>${b.info}</td></tr>`;
+      });
+      html += "</tbody></table>";
+      container.innerHTML = html;
+    }
   }
 }
