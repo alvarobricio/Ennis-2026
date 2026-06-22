@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Inmersión - Ennis 2026</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
       --bg-main: #0f172a;
@@ -14,278 +15,44 @@
       --text-muted: #9ca3af;
       --warning: #fbbf24;
       --info: #38bdf8;
-      --danger: #ef4444;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-white); display: flex; min-height: 100vh; overflow-x: hidden; }
 
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-white);
-      display: flex;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+    /* Sidebar */
+    .sidebar { width: 265px; background: #0b0f19; border-right: 2px solid var(--accent); padding: 20px; display: flex; flex-direction: column; gap: 15px; position: fixed; height: 100vh; z-index: 10; }
+    .sidebar h2 { color: var(--accent); font-size: 22px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
+    .nav-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-muted); padding: 14px 18px; text-align: left; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.25s ease; }
+    .nav-btn:hover, .nav-btn.active { background: var(--accent); color: #001b14; border-color: var(--accent); box-shadow: 0 0 12px rgba(0, 255, 170, 0.3); }
 
-    /* Sidebar Lateral */
-    .sidebar {
-      width: 265px;
-      background: #0b0f19;
-      border-right: 2px solid var(--accent);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      position: fixed;
-      height: 100vh;
-      z-index: 10;
-    }
+    /* Contenido Principal */
+    .main-content { margin-left: 265px; flex: 1; padding: 30px; width: calc(100% - 265px); }
+    .header-panel { background: var(--bg-card); border: 2px solid var(--accent); border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .header-panel h1 { font-size: 24px; }
+    .clocks-grid { display: flex; gap: 25px; font-size: 15px; }
+    .clocks-grid span { color: var(--accent); font-weight: bold; }
 
-    .sidebar h2 {
-      color: var(--accent);
-      font-size: 22px;
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-align: center;
-    }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    .card { background: var(--bg-card); border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.05); padding: 22px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; gap: 14px; }
+    .card h3 { font-size: 18px; color: var(--accent); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 8px; }
 
-    .nav-btn {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--text-muted);
-      padding: 14px 18px;
-      text-align: left;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-      transition: all 0.25s ease;
-    }
+    /* Cuenta atrás */
+    .countdown-wrapper { display: flex; gap: 12px; justify-content: center; margin: 10px 0; }
+    .time-slot { background: #1f2937; padding: 12px; border-radius: 10px; min-width: 70px; text-align: center; border-bottom: 3px solid var(--accent); }
+    .time-slot span { display: block; font-size: 24px; font-weight: bold; color: var(--accent); }
+    .time-slot label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
 
-    .nav-btn:hover, .nav-btn.active {
-      background: var(--accent);
-      color: #001b14;
-      border-color: var(--accent);
-      box-shadow: 0 0 12px rgba(0, 255, 170, 0.3);
-    }
+    .status-pill { background: var(--accent); color: #001b14; padding: 6px 14px; border-radius: 30px; font-size: 12px; font-weight: bold; align-self: flex-start; text-transform: uppercase; }
 
-    /* Contenedor Principal */
-    .main-content {
-      margin-left: 265px;
-      flex: 1;
-      padding: 30px;
-      width: calc(100% - 265px);
-    }
+    /* Estilos del mapa */
+    #map { width: 100%; height: 500px; border-radius: 12px; border: 2px solid var(--accent); z-index: 1; }
 
-    .header-panel {
-      background: var(--bg-card);
-      border: 2px solid var(--accent);
-      border-radius: 16px;
-      padding: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-    }
-
-    .header-panel h1 {
-      font-size: 24px;
-    }
-
-    .clocks-grid {
-      display: flex;
-      gap: 25px;
-      font-size: 15px;
-    }
-
-    .clocks-grid span {
-      color: var(--accent);
-      font-weight: bold;
-    }
-
-    /* Grid de tarjetas */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: var(--bg-card);
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 22px;
-      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .card h3 {
-      font-size: 18px;
-      color: var(--accent);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding-bottom: 8px;
-    }
-
-    /* Cuenta Atrás */
-    .countdown-wrapper {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      margin: 10px 0;
-    }
-
-    .time-slot {
-      background: #1f2937;
-      padding: 12px;
-      border-radius: 10px;
-      min-width: 70px;
-      text-align: center;
-      border-bottom: 3px solid var(--accent);
-    }
-
-    .time-slot span {
-      display: block;
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--accent);
-    }
-
-    .time-slot label {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-    }
-
-    /* Monitorización */
-    .status-pill {
-      background: var(--accent);
-      color: #001b14;
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: bold;
-      align-self: flex-start;
-      text-transform: uppercase;
-    }
-    .status-pill.home { background: var(--warning); color: #111827; }
-    .status-pill.sleep { background: #6366f1; color: white; }
-    .status-pill.free { background: var(--info); color: #111827; }
-
-    /* --- INTERFAZ MEJORADA DE VUELOS (ESTILO BOARDING PASS) --- */
-    .ticket {
-      background: #1e293b;
-      border-radius: 16px;
-      border-left: 6px solid var(--accent);
-      overflow: hidden;
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
-    }
-    .ticket-header {
-      background: rgba(255,255,255,0.03);
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px dashed rgba(255,255,255,0.1);
-    }
-    .ticket-body {
-      padding: 20px;
-    }
-    .route-visual {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    .airport-code {
-      font-size: 32px;
-      font-weight: 900;
-      color: var(--text-white);
-    }
-    .airport-city {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: block;
-    }
-    .flight-line {
-      flex: 1;
-      text-align: center;
-      position: relative;
-      margin: 0 15px;
-      border-bottom: 2px dashed var(--accent);
-      padding-bottom: 4px;
-      font-size: 12px;
-      color: var(--accent);
-    }
-    .flight-line::after {
-      content: '✈️';
-      position: absolute;
-      right: 0;
-      bottom: -10px;
-    }
-    .ticket-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      font-size: 13px;
-      background: rgba(0,0,0,0.2);
-      padding: 12px;
-      border-radius: 8px;
-    }
-    .ticket-grid div span {
-      display: block;
-      color: var(--text-muted);
-      font-size: 11px;
-      text-transform: uppercase;
-    }
-    .ticket-grid div p {
-      font-weight: bold;
-      color: var(--text-white);
-    }
-
-    /* Lista de control */
-    .checklist-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 4px 0;
-    }
-    .checklist-row input[type="checkbox"] {
-      accent-color: var(--accent);
-      width: 18px;
-      height: 18px;
-    }
-
-    /* Horarios y tablas */
-    .schedule-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13.5px;
-      margin-top: 10px;
-    }
-    .schedule-table th, .schedule-table td {
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 12px;
-      text-align: left;
-    }
-    .schedule-table th {
-      background: #1f2937;
-      color: var(--accent);
-    }
-    .schedule-table tr.active-row {
-      background: rgba(0, 255, 170, 0.15);
-      border-left: 4px solid var(--accent);
-      font-weight: bold;
-    }
+    /* Estilos de las tablas horarias */
+    .schedule-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 5px; }
+    .schedule-table th, .schedule-table td { border: 1px solid rgba(255, 255, 255, 0.08); padding: 12px; text-align: left; }
+    .schedule-table th { background: #1f2937; color: var(--accent); }
+    .schedule-table tr.active-row { background: rgba(0, 255, 170, 0.15); border-left: 4px solid var(--accent); font-weight: bold; }
 
     .section-view { display: none; }
     .section-view.active { display: grid; }
@@ -294,22 +61,18 @@
       body { flex-direction: column; }
       .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 2px solid var(--accent); }
       .main-content { margin-left: 0; width: 100%; padding: 15px; }
-      .clocks-grid { flex-direction: column; gap: 5px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- SIDEBAR -->
   <div class="sidebar">
-    <h2>Ennis 2026 🇮🇪</h2>
+    <h2>Abbla Ennis 🇮🇪</h2>
     <button class="nav-btn active" onclick="switchTab('dashboard', this)">🏠 General</button>
-    <button class="nav-btn" onclick="switchTab('horario', this)">📅 Horario Activo</button>
-    <button class="nav-btn" onclick="switchTab('vuelos', this)">✈️ Tarjetas de Embarque</button>
-    <button class="nav-btn" onclick="switchTab('docs', this)">📝 Lista de Control</button>
+    <button class="nav-btn" onclick="switchTab('horario', this)">📅 Horario de Hoy</button>
+    <button class="nav-btn" onclick="switchTab('mapa', this)">🗺️ Mapa Local</button>
   </div>
 
-  <!-- MAIN -->
   <div class="main-content">
     <div class="header-panel">
       <h1>Módulo <span id="nav-title">General</span></h1>
@@ -319,152 +82,51 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: GENERAL -->
     <div id="dashboard" class="section-view active dashboard-grid">
       <div class="card">
-        <h3>⏱️ Cuenta Atrás al Destino</h3>
-        <p style="font-size: 13px; color: var(--text-muted);">Tiempo hasta la cita grupal en Barajas (06 Jul - 08:00h):</p>
+        <h3>⏱️ Cuenta para la Salida (Madrid)</h3>
         <div class="countdown-wrapper" id="countdown">
           <div class="time-slot"><span id="days">00</span><label>Días</label></div>
           <div class="time-slot"><span id="hours">00</span><label>Horas</label></div>
           <div class="time-slot"><span id="minutes">00</span><label>Min</label></div>
           <div class="time-slot"><span id="seconds">00</span><label>Seg</label></div>
         </div>
-        <p id="countdown-status" style="text-align: center; font-weight: bold; font-size: 14px; color: var(--accent);"></p>
+        <p style="font-size: 12px; color: var(--text-muted); text-align: center;">Cita: 06/07/2026 a las 08:00h en Barajas T2.</p>
       </div>
 
       <div class="card">
-        <h3>📍 Estado Actual (Irlanda)</h3>
-        <div id="activity-badge" class="status-pill">Calculando...</div>
-        <p style="font-size: 16px; font-weight: bold;" id="activity-name">-</p>
-        <p style="font-size: 13px; color: var(--text-muted);" id="activity-desc">-</p>
-        <div style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
-          <span style="color: var(--warning); font-size: 12px; font-weight: bold;">💡 Siguiente bloque en el itinerario:</span>
-          <p id="next-activity" style="font-size: 13px; margin-top: 3px; color: var(--info); font-weight: bold;"></p>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>🌦️ Clima de Ennis (Open-Meteo)</h3>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-          <span id="weather-temp" style="font-size: 38px; font-weight: bold; color: var(--accent);">--°C</span>
-          <div style="text-align: right; font-size: 13px; color: var(--text-muted);">
-            <p id="weather-status">Sincronizando...</p>
-            <p id="weather-wind">Viento: -- km/h</p>
-          </div>
-        </div>
-        <p style="font-size: 12px; background: rgba(56, 189, 248, 0.08); padding: 10px; border-radius: 8px; color: var(--info); margin-top: 5px;">
-          Lleva siempre el chubasquero abbla a mano. El clima cambia en minutos.
-        </p>
+        <h3>📍 Estado Inmersión en Tiempo Real</h3>
+        <div id="realtime-badge" class="status-pill" style="background: var(--info); color: #0f172a;">Detectando fecha...</div>
+        <p style="font-size: 16px; font-weight: bold;" id="realtime-activity">Sincronizando...</p>
+        <p style="font-size: 13px; color: var(--text-muted);" id="realtime-desc">Calculando tarea según el reloj oficial de Irlanda.</p>
       </div>
     </div>
 
-    <!-- SECCIÓN: HORARIO COMPLETO -->
     <div id="horario" class="section-view dashboard-grid" style="grid-template-columns: 1fr;">
       <div class="card">
-        <h3>📅 Cronograma de Inmersión Oficial</h3>
-        <p style="font-size: 13px; color: var(--text-muted);">La actividad en curso se ilumina automáticamente basándose en la hora de Ennis (GMT+1).</p>
-        <table class="schedule-table">
-          <thead>
-            <tr>
-              <th>Bloque (Hora Local)</th>
-              <th>Actividad o Tarea</th>
-              <th>Directrices del Programa</th>
-            </tr>
-          </thead>
-          <tbody id="schedule-body">
-            <tr id="row-0745"><td><b>07:45 - 08:45</b></td><td>🍳 Desayuno en Familia</td><td>Obligatorio interactuar con tu Host Family en inglés.</td></tr>
-            <tr id="row-0845"><td><b>08:45 - 09:00</b></td><td>🚌 Traslado a la Academia</td><td>Puntualidad británica en el trayecto diario.</td></tr>
-            <tr id="row-0900"><td><b>09:00 - 12:45</b></td><td>📚 Clases de Idioma</td><td>Formación lectiva interactiva por niveles. No se permite español.</td></tr>
-            <tr id="row-1245"><td><b>12:45 - 14:00</b></td><td>🥪 Almuerzo / Pack-Lunch</td><td>Pausa para comer con el grupo en las zonas habilitadas.</td></tr>
-            <tr id="row-1400"><td><b>14:00 - 17:45</b></td><td>🎯 Actividades / Tuesday Tour</td><td>Deportes y cultura. Los martes se extiende por excursión.</td></tr>
-            <tr id="row-1745"><td><b>17:45 - 18:30</b></td><td>🚌 Regreso a las Viviendas</td><td>Trayecto ordenado de vuelta a casa de los anfitriones.</td></tr>
-            <tr id="row-1830"><td><b>18:30 - 20:00</b></td><td>🏠 Cena con la Host Family</td><td>Punto neurálgico de inmersión social. Móviles guardados.</td></tr>
-            <tr id="row-2000"><td><b>20:00 - 22:15</b></td><td>📱 Tiempo Libre Controlado</td><td>Ducha, llamadas a España y preparación de mochila.</td></tr>
-            <tr id="row-sleep"><td><b>22:15 - 07:45</b></td><td>🛌 Descanso Obligatorio</td><td>Silencio total en las habitaciones. Es necesario dormir bien.</td></tr>
-          </tbody>
-        </table>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+          <h3 style="border-bottom: none;" id="schedule-day-title">📅 Plan Diario</h3>
+          <span id="current-date-badge" style="color: var(--accent); font-weight: bold; font-size: 14px;">--/--/2026</span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted);">El sistema evalúa el día exacto del viaje y te muestra solo lo que te toca hacer hoy.</p>
+        
+        <div id="daily-schedule-container"></div>
       </div>
     </div>
 
-    <!-- SECCIÓN: VUELOS MEJORADOS -->
-    <div id="vuelos" class="section-view dashboard-grid">
-      <!-- VUELO IDA -->
-      <div class="ticket">
-        <div class="ticket-header">
-          <span style="color: var(--warning); font-weight: bold; font-size: 13px;">✈️ VUELO DE IDA - OPERACIÓN ENNIS</span>
-          <span style="background: rgba(251,191,36,0.2); color: var(--warning); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">LUN 6 JUL</span>
-        </div>
-        <div class="ticket-body">
-          <div class="route-visual">
-            <div>
-              <span class="airport-code">MAD</span>
-              <span class="airport-city">Madrid Barajas, T2</span>
-            </div>
-            <div class="flight-line">EI 593 (Aer Lingus)</div>
-            <div style="text-align: right;">
-              <span class="airport-code">DUB</span>
-              <span class="airport-city">Dublín Airport, T1</span>
-            </div>
-          </div>
-          <div class="ticket-grid">
-            <div><span>Cita Grupo</span><p style="color: var(--warning);">08:00 h</p></div>
-            <div><span>Embarque</span><p>10:00 h</p></div>
-            <div><span>Despegue (ESP)</span><p>10:40 h</p></div>
-            <div><span>Llegada (IRL)</span><p style="color: var(--accent);">12:20 h</p></div>
-          </div>
-          <p style="font-size: 11px; color: var(--text-muted); margin-top: 12px; text-align: center;">
-            📍 Punto de Encuentro: Mostradores de facturación de Aer Lingus.
-          </p>
-        </div>
-      </div>
-
-      <!-- VUELO VUELTA -->
-      <div class="ticket" style="border-left-color: var(--info);">
-        <div class="ticket-header">
-          <span style="color: var(--info); font-weight: bold; font-size: 13px;">✈️ VUELO DE RETORNO - REGRESO</span>
-          <span style="background: rgba(56,189,248,0.2); color: var(--info); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">LUN 27 JUL</span>
-        </div>
-        <div class="ticket-body">
-          <div class="route-visual">
-            <div>
-              <span class="airport-code">DUB</span>
-              <span class="airport-city">Dublín Airport</span>
-            </div>
-            <div class="flight-line" style="border-bottom-color: var(--info); color: var(--info);">EI 592 (Aer Lingus)</div>
-            <div style="text-align: right;">
-              <span class="airport-code">MAD</span>
-              <span class="airport-city">Madrid Barajas</span>
-            </div>
-          </div>
-          <div class="ticket-grid">
-            <div><span>Traslado Aeropuerto</span><p>Madrugada Coor.</p></div>
-            <div><span>Embarque</span><p>05:40 h</p></div>
-            <div><span>Despegue (IRL)</span><p>06:20 h</p></div>
-            <div><span>Llegada (ESP)</span><p style="color: var(--info);">10:00 h</p></div>
-          </div>
-          <p style="font-size: 11px; color: var(--text-muted); margin-top: 12px; text-align: center;">
-            ⚠️ El vuelo de vuelta requiere de un madrugón coordinado con autobuses desde Ennis.
-          </p>
-        </div>
+    <div id="mapa" class="section-view dashboard-grid" style="grid-template-columns: 1fr;">
+      <div class="card">
+        <h3>🗺️ Localizaciones de Interés en Ennis</h3>
+        <p style="font-size: 13px; color: var(--text-muted);">Puntos geográficos extraídos de las pautas del viaje de Abbla.</p>
+        <div id="map"></div>
       </div>
     </div>
 
-    <!-- SECCIÓN: DOCUMENTACIÓN -->
-    <div id="docs" class="section-view dashboard-grid">
-      <div class="card" style="grid-column: span 2;">
-        <h3>📝 Check-List de Gestión de Documentación</h3>
-        <p style="font-size: 13px; color: var(--text-muted);">Comprueba que tienes todo listo antes del día 6 de Julio:</p>
-        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
-          <label class="checklist-row"><input type="checkbox"> 🛂 Pasaporte original o DNI en perfecto estado.</label>
-          <label class="checklist-row"><input type="checkbox"> 💳 Tarjeta Sanitaria Europea (TSE).</label>
-          <label class="checklist-row"><input type="checkbox"> 👮 Autorización Policial de Salida de Menores (Original firmado).</label>
-          <label class="checklist-row"><input type="checkbox"> 🔌 Adaptador de enchufe Tipo G (Irlanda/UK).</label>
-        </div>
-      </div>
-    </div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="app.js"></script>
+  <script src="horario.js"></script>
+  <script src="mapa.js"></script>
 </body>
 </html>
