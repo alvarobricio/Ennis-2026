@@ -47,7 +47,7 @@ async function syncEnnisWeather() {
       document.getElementById('weather-status').textContent = parseWeatherCode(conditionCode);
     }
   } catch (error) {
-    document.getElementById('weather-status').textContent = "Servicio meteorológico fuera de línea temporalmente";
+    document.getElementById('weather-status').textContent = "Servicio meteorológico fuera de línea";
   }
 }
 
@@ -86,11 +86,11 @@ function runDashboardLoop() {
     document.getElementById('countdown-status').textContent = "";
   }
 
-  // LOGICA INTERACTIVA DE HORARIOS DE ENNIS
+  // LÓGICA INTERACTIVA DE HORARIOS DE ENNIS
   const currentHour = ennisCalculatedTime.getHours();
   const currentMin = ennisCalculatedTime.getMinutes();
   const numericTime = currentHour * 100 + currentMin; 
-  const currentDay = ennisCalculatedTime.getDay(); // 0: Dom, 2: Mar, etc.
+  const currentDay = ennisCalculatedTime.getDay(); // 0: Dom, 1: Lun, 2: Mar...
 
   let badge = document.getElementById('activity-badge');
   let name = document.getElementById('activity-name');
@@ -107,7 +107,7 @@ function runDashboardLoop() {
     sleep.textContent = "Descanso más flexible, pero respeta siempre los límites pactados con la casa.";
   } else {
     // Rutina de lunes a viernes
-    if (numericTime >= 745 && numericTime < 900) {
+    if (numericTime >= 745 && numericTime < 845) {
       badge.className = "status-pill home";
       badge.textContent = " Desayuno ";
       name.textContent = "Desayunando con la Host Family";
@@ -115,11 +115,11 @@ function runDashboardLoop() {
       document.getElementById('row-0745')?.classList.add('active-row');
       sleep.textContent = "Recomendación: Acostarse antes de las 22:15 hoy para mantener la energía.";
     } 
-    else if (numericTime >= 900 && numericTime < 1245) {
+    else if (numericTime >= 845 && numericTime < 1245) {
       badge.className = "status-pill";
       badge.textContent = " Academia ";
       name.textContent = "Clases Académicas de Inglés";
-      desc.textContent = "Bloque lectivo formal enfocado en fluidez verbal y dinámicas comunicativas.";
+      desc.textContent = "Bloque lectivo formal enfocado en fluidez verbal y dinámicas comunicativas (9:00 a 12:45).";
       document.getElementById('row-0900')?.classList.add('active-row');
       sleep.textContent = "Mantén el enfoque en la escuela. ¡Prohibido hablar español en clase!";
     } 
