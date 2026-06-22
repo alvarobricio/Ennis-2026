@@ -80,10 +80,11 @@
       </div>
     </div>
 
-    <!-- PESTAÑA: GENERAL -->
+<!-- PESTAÑA: GENERAL -->
     <div id="general" class="section-view active">
       <div class="home-grid">
         
+        <!-- CUENTA ATRÁS -->
         <div class="card">
           <div class="card-header">⏱️ Cuenta para la Salida (Madrid)</div>
           <div id="countdown">
@@ -93,10 +94,26 @@
               <div class="time-block"><span id="minutes" class="time-num">00</span><span class="time-lbl">Min</span></div>
               <div class="time-block"><span id="seconds" class="time-num">00</span><span class="time-lbl">Seg</span></div>
             </div>
-            <p class="countdown-meta">Cita: 06/07/2026 a las 08:00h en Mostradores Aer Lingus (T4).</p>
+            <p class="countdown-meta">Cita: 06/07/2026 a las 11:00h en Mostradores Aer Lingus (T4S).</p>
           </div>
         </div>
 
+        <!-- MÓDULO API: PRONÓSTICO DEL TIEMPO EN ENNIS -->
+        <div class="card">
+          <div class="card-header">🌤️ Pronóstico del Tiempo (Ennis, IE)</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 5px;">
+            <div>
+              <div id="weather-temp" style="font-size: 36px; font-weight: bold; color: var(--text);">--°C</div>
+              <div id="weather-desc" style="color: var(--text-muted); font-size: 14px; text-transform: capitalize; margin-top: 2px;">Cargando clima...</div>
+            </div>
+            <div id="weather-icon" style="font-size: 48px;">⏳</div>
+          </div>
+          <div style="font-size: 11px; color: #eab308; background: rgba(234, 179, 8, 0.1); padding: 6px 10px; border-radius: 4px; margin-top: 10px; border: 1px solid rgba(234, 179, 8, 0.2);">
+            ⚠️ Recuerda: El clima irlandés es muy cambiante. ¡Lleva siempre chubasquero![cite: 1]
+          </div>
+        </div>
+
+        <!-- ESTADO DE LA INMERSIÓN -->
         <div class="card">
           <div class="card-header">📍 Estado Inmersión en Tiempo Real</div>
           <div>
@@ -109,23 +126,15 @@
           </div>
         </div>
 
-        <div class="card" style="grid-column: span 2;">
-          <div class="card-header">ℹ️ Información de Emergencia y Logística Oficial</div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
-            <div style="background: #111827; padding: 12px; border-radius: 6px; border: 1px solid #334155;">
-              <h4 style="color: var(--accent); margin-off: 5px; font-size: 14px;">✈️ Información de Vuelo</h4>
-              <p style="font-size: 12.5px; color: #cbd5e1; line-height: 1.4;">
-                <b>Compañía:</b> Aer Lingus (Vuelo Directo)<br>
-                <b>Ida:</b> Madrid (MAD) → Dublín (DUB)<br>
-                <b>Equipaje:</b> Coordinado según directrices de la organización.
-              </p>
+        <!-- LOGÍSTICA Y CONTROL -->
+        <div class="card">
+          <div class="card-header">ℹ️ Logística Oficial y Equipaje</div>
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #cbd5e1;">
+            <div style="background: #111827; padding: 10px; border-radius: 6px; border: 1px solid #334155;">
+              ✈️ <b>Vuelo EI 593:</b> Madrid T4S → Dublín T2 (Ida: 06/07).
             </div>
-            <div style="background: #111827; padding: 12px; border-radius: 6px; border: 1px solid #334155;">
-              <h4 style="color: var(--accent-secondary); margin-off: 5px; font-size: 14px;">📞 Asistencia 24h</h4>
-              <p style="font-size: 12.5px; color: #cbd5e1; line-height: 1.4;">
-                <b>Monitoreo:</b> Equipo de monitores Abbla asignado en destino.<br>
-                <b>Seguridad:</b> Teléfonos directos disponibles en la pestaña de Contacto.
-              </p>
+            <div style="background: #111827; padding: 10px; border-radius: 6px; border: 1px solid #334155;">
+              🧳 <b>Maleta Facturada:</b> 1 bulto de máx. 20kg por alumno[cite: 1].
             </div>
           </div>
         </div>
